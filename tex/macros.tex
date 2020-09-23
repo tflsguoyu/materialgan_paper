@@ -1,0 +1,78 @@
+% packages
+\usepackage{graphicx,adjustbox}
+\usepackage{bm}       %provides boldmath symbols via \bm command
+\usepackage{multirow}
+\usepackage{xspace}
+\usepackage{animate}
+
+\setlength{\abovecaptionskip}{5pt}
+\setlength{\belowcaptionskip}{5pt}
+
+\newcommand{\revision}[1]{#1}
+
+\newcommand{\Reals}{\mathbb{R}}
+\newcommand{\summ}{\mathbb{S}}
+\newcommand{\la}{\leftarrow}
+\newcommand{\ra}{\rightarrow}
+\newcommand{\lra}{\leftrightarrow}
+
+\newcommand{\latent}{\bm{u}}
+\newcommand{\latentopt}{\bm{u^{*}}}
+\newcommand{\params}{\bm{\theta}}
+\newcommand{\paramsopt}{\bm{\theta^{*}}}
+\newcommand{\img}{\bm{I}}
+\newcommand{\albedo}{\bm{a}}
+\newcommand{\normal}{\bm{n}}
+\newcommand{\rough}{r}
+\newcommand{\spec}{\bm{s}}
+\newcommand{\loss}{\mathcal{L}}
+\newcommand{\lossPix}{\loss_\mathrm{pixel}}
+\newcommand{\lossPercp}{\loss_\mathrm{percept}}
+\newcommand{\render}{\mathcal{R}}
+\newcommand{\decode}{\mathcal{D}}
+\newcommand{\generator}{\mathcal{G}}
+\newcommand{\matgan}{\mathcal{M}}
+\newcommand{\light}{L}
+\newcommand{\camera}{C}
+\newcommand{\Real}{\mathbb{R}}
+
+\newcommand{\bw}{\bm{w}}
+\newcommand{\bW}{\bm{W}}
+\newcommand{\bz}{\bm{z}}
+\newcommand{\bZ}{\bm{Z}}
+
+\newcommand{\noise}{\bm{\xi}}
+\newcommand{\calW}{\mathcal{W}}
+\newcommand{\calZ}{\mathcal{Z}}
+\newcommand{\calN}{\mathcal{N}}
+\newcommand{\calWN}{\mathcal{W}^+\mathcal{N}}
+
+\newcommand{\milos}[1]{\textcolor{blue}{[\textbf{Milos:} {\em #1}]}}
+\newcommand{\fixme}[1]{\textcolor{red}{[\textbf{FIXME:} {\em #1}]}}
+\newcommand{\sz}[1]{\textcolor{green}{[\textbf{SZ:} {\em #1}]}}
+\newcommand{\gy}[1]{\textcolor{purple}{{\em #1}}}
+\newcommand{\KS}[1]{\textcolor{orange}{[\textbf{Kalyan:} {\em #1}]}}
+\newcommand{\commentout}[1]{}
+\newcommand{\toptext}[2]{$\overbrace{\hspace{#1}}^{\text{\normalsize #2}}$}
+
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newlength{\resLen}
+\newlength{\raiseLen}
+
+\newcommand{\one}{}
+\newcommand{\two}{}
+\newcommand{\thr}{}
+\newcommand{\fou}{}
+\newcommand{\fiv}{}
+\newcommand{\six}{}
+\newcommand{\sev}{}
+\newcommand{\eit}{}
+\newcommand{\nin}{}
+\newcommand{\ten}{}
+
+\newcommand{\totReal}{28\xspace}
+\newcommand{\totSynthetic}{39\xspace}
+
+\graphicspath{{images/}}

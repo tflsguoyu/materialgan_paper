@@ -1,0 +1,43 @@
+\renewcommand{\one}{fake_037}
+\renewcommand{\two}{real_book1}
+
+\setlength{\resLen}{.51in}
+\begin{figure}[t]
+	\addtolength{\tabcolsep}{-4pt}
+	\begin{tabular}{cccc}
+		& \textbf{\footnotesize{SVBRDF maps}} & \textbf{\small Opt.} & \textbf{\small Novel}
+		\\
+		\raisebox{.2in}{\rotatebox[origin=c]{90}{\footnotesize{GT}}} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/ref/tex.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/ref/00.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/ref/07.jpg}
+		\\
+		\raisebox{.2in}{\rotatebox[origin=c]{90}{\footnotesize{(1)}}} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/optimW+N/tex.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/optimW+N/00.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/optimW+N/07.jpg}
+		\\
+		\raisebox{.2in}{\rotatebox[origin=c]{90}{\footnotesize{(2)}}} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/optimW+_refine/tex.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/optimW+_refine/00.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\one/optimW+_refine/07.jpg}
+		\\
+		\raisebox{.2in}{\rotatebox[origin=c]{90}{\footnotesize{GT}}} &
+		 &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/ref/00.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/ref/07.jpg}
+		\\
+		\raisebox{.2in}{\rotatebox[origin=c]{90}{\footnotesize{(1)}}} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/optimW+N/tex.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/optimW+N/00.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/optimW+N/07.jpg}
+		\\
+		\raisebox{.2in}{\rotatebox[origin=c]{90}{\footnotesize{(2)}}} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/optimW+_refine/tex.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/optimW+_refine/00.jpg} &
+		\includegraphics[height=\resLen]{validation/noise_refine/\two/optimW+_refine/07.jpg}
+	\end{tabular}
+	\caption{\label{fig:noiseVSrefine}
+		\revision{\textbf{Noise optimization vs. post-refinement.} (1) Optimize $\bw^+$ and $\noise$ but no post-refinement; (2) Optimize $\bw^+$ only but with post-refinement. This shows that $\noise$ takes an important role; optimizing only $\bw^+$ has too little expressive power and converges to suboptimal solutions, which post-refinement cannot fix (see especially normal maps in (2)).}
+	}
+\end{figure}

@@ -1,0 +1,39 @@
+\section{Related work}
+\label{sec:related}
+
+\paragraph{Reflectance capture.}
+\revision{Acquiring} material data from physical measurements is the goal of a broad range of methods.
+\revision{Please refer to surveys~\cite{weyrich09,Guarnera2016,dong19} for more comprehensive introduction to the related works.}
+
+Most \revision{reflectance capture} approaches %generally
+observe a material sample under \revision{varying viewing} and lighting configurations. They differ in the number of light patterns required and their \revision{types such as} moving linear light \cite{Gardner2003,Ren2011}, Gray code patterns \cite{Francken2009}, spherical harmonic illumination \cite{Ghosh2009}, and Fourier patterns \cite{Aittala2013}.
+
+Methods have also been proposed for material capture ``in the wild'', i.e., under uncontrolled environment conditions with commodity hardware, typically captured with a hand-held mobile phone with flash illumination. Some of these methods impose strong priors on the materials, such as linear combinations of basis BRDFs \cite{Hui2017,Xu2016} (where the basis BRDFs can come from the measured data \cite{Matusik2003}). Later work by Aittala et al. \shortcite{Aittala2015,Aittala2016} estimated per-pixel parameters of stationary spatially-varying SVBRDFs from two-shot and one-shot photographs.
+In the latter case, the approach used a neural Gram-matrix texture descriptor based on the texture synthesis and feature transfer work of Gatys \shortcite{Gatys2015,Gatys2016} to compare renderings with similar texture patterns but without pixel alignment.
+
+More recently, deep learning-based approaches have demonstrated remarkable progress in the quality of SVBRDF estimates from single images (usually captured under flash illumination) \cite{Li2017,Deschaintre2018,Li2018}. These methods train deep convolutional neural networks with large datasets of artistically created SVBRDFs, and with a combination of losses that evaluate the difference in material maps and renderings from the dataset ground truth.
+
+Deschaintre \shortcite{Deschaintre2019} extended the single-shot approach to multiple images. The key idea is to extract features from the input images with a shared encoder, max-pooling the features and decoding the final maps from the pooled features. This architecture has the benefit of being independent of the number of inputs, while also not requiring explicit light position information. In our experience, this approach produces smooth, plausible maps with low artifacts; however, re-rendering the maps tends to be not as close to the target measurements because the network cannot ``check'' its results at runtime. Moreover, we find that especially on real data, this method also has strong biases such as dark diffuse albedo maps and exaggerating surface normals (especially along strong image gradients that might be caused by albedo variations). We believe this is not due to any technical flaw; the method may be reaching the limit of what is possible using current feed-forward convolutional architectures and currently available datasets.
+
+Gao et al. \shortcite{Gao2019} introduced an inverse rendering-based material capture approach that optimizes for material maps to minimize error with respect to the captured images. Since this is an under-constrained problem, they propose optimizing over the latent space of a learned material auto-encoder network to minimize rendering error. This approach has the benefit of explicitly matching the appearance of the captured image measurements, while also using the auto-encoder as a material ``prior''. Moreover, the encoder and decoder are fully convolutional, which has the advantage of resolution independence.
+However, we find that the convolutional nature of this model also has the disadvantage of only providing local regularization and not capturing global patterns in the material, such as the long-range spatial patterns and correlations between the different material parameter maps. As a result, this method relies on previous methods (for example, Deschaintre et al.~\shortcite{Deschaintre2018}) to provide a good initialization, without which it can converge to poor results.
+%Thus this approach provides only local regularization (even though it is an improvement compared to conventional optimization directly in pixel space), and generally needs to be initialized with the result of another method, providing further cleanup.
+In contrast, our MaterialGAN is a more globally robust latent space and produces higher quality reconstructions without requiring accurate initializations, though it is no longer resolution-independent.
+
+\paragraph{Generative adversarial networks.}
+GANs~\cite{GAN} have become extremely successful in the past few years in various domains, including images~\cite{DCGAN}, video~\cite{Tulyakov18}, audio~\cite{Donahue18}, \revision{and 3D shapes~\cite{Li19}}. A GAN typically consists of two competing networks; a generator, whose goal is to produce results that are indistinguishable from the real data distribution, and a discriminator, whose job is to learn to identify generated results from real ones. For generating realistic images (especially of human faces), there has been a sequence of improved models and training strategies, including ProgressiveGAN~\cite{Karras2018}, StyleGAN~\shortcite{StyleGAN} and StyleGAN2~\shortcite{StyleGAN2}. StyleGAN2 in particular is the state-of-the-art GAN model and our work is based on its architecture, modified to output more channels.
+
+\revision{Recently, GANs have also been used to solve inverse problems \cite{Bora17,Asim19,Malley19}.}
+%Recent research in the GAN space has also focused
+\revision{In computer graphics and vision, this work has focused} on embedding images into the latent space, with the goal of editing the images in semantically meaningful ways via latent vector manipulations \cite{Zhu2016}. This embedding requires solving an optimization problem to find the latent vector.
+%Among the first papers to consider embedding images into a GAN latent space, for the purposes of editing them while staying on the learned manifold, was the approach by Zhu et al. \shortcite{Zhu2016}.
+%Furthermore, the embedding needs to be ``soft'', and robust to the fact that the model may not be able generate pixel-aligned results. These considerations make the link between generative modeling and our material capture application more clear.
+More recent work such as Image2StyleGAN~\cite{Abdal19a} and Image2StyleGAN++~\cite{Abdal19b} has looked at problem of embedding images specifically into the the StyleGAN latent space. While these methods focus on projecting portrait images into face-specific StyleGAN models, we find their analysis can be adapted to our problem.
+We build on this to propose a GAN embedding-based inverse rendering approach.
+%To our knowledge, none of the previous work on GANs has used them to solve the problem of under-constrained optimization within an analysis-by-synthesis framework.
+
+
+
+% We instead train a generator model for SVBRDF maps $\albedo$, $\normal$ and $\rough$, by training on a large dataset of such maps. Then, instead of embedding given SVBRDF maps into the space (which we can also do, but is less useful), we use the learned generator as the decoder in eq. \ref{eq:opt2}. We find the loss function design is also a key component of the problem: a weighted combination of pixel losses at different resolutions, combined with several VGG feature maps losses, leads to a massively improved result over using a simple per-pixel loss.
+
+

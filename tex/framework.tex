@@ -1,0 +1,148 @@
+\section{SVBRDF Capture using MaterialGAN}
+\label{sec:framework}
+%
+We utilize MaterialGAN, the powerful generative model described in the previous section, in a fundamentally new fashion: to \emph{capture} SVBRDF maps.
+Specifically, we use MaterialGAN as a \emph{material prior} for SVBRDF acquisition via an inverse rendering framework.
+%
+Our goal is to estimate the SVBRDF parameter maps from one or a small number of photographs of a near-planar material sample.
+We utilize a common BRDF model that involves a diffuse and a specular component using the microfacet BRDF with the GGX normal distributions~\cite{Walter07}.
+Our unknown parameter vectors $\params := (\albedo,\normal,\rough,\spec)$ encode the four per-pixel parameter maps: diffuse albedo~$\albedo$, surface normal~$\normal$, roughness~$\rough$, and specular albedo~$\spec$.
+%
+To recover the unknown parameter maps, we capture $k$ images $\img_1, \cdots, \img_k$.
+We assume known viewing and lighting configurations for each image, which we denote as $(\light_i, \camera_i)$.
+Further, we assume that the material is lit by a single point source, collocated with the camera.%
+\footnote{%
+	In theory, non-collocated lights, area lights or projection patterns (e.g. on an LCD or similar screen) can be used as well, and would require a straightforward modification to our forward rendering process.
+}
+The images can be reprojected into a common frontal view (which is straightforward with a known viewing configuration).
+%
+We introduce a differentiable rendering operator $\render$ that takes as input the parameter maps as well as the viewing and lighting configurations, and synthesizes corresponding images of the material.
+Under this setup, our goal is to find values of the unknown parameters $\params$ so that renderings with these parameters match the measurements $\img_i$.
+In other words, we focus on solving the following optimization problem:
+%
+\begin{equation}
+	\label{eq:opt1}
+	\paramsopt = \textstyle\argmin_{\albedo, \normal, \rough} \sum_{i=1}^k \loss(\render(\params; \,\light_i, \camera_i), \img_i),
+\end{equation}
+where $\loss$ is a loss function that measures the difference between the captured images, $\img_i$ and the renderings generated from the estimated SVBRDF parameters, $\render(\params; \,\light_i, \camera_i)$.
+%
+\input{tex/fig/fig_framework}
+%
+\subsection{Incorporating the MaterialGAN prior}
+%
+Eq.~\eqref{eq:opt1} is, in general, a challenging optimization to solve due to its under-constrained nature.
+Given a small number of input measurements, the optimization can overfit to the input, producing implausible maps that do not generalize to novel views and lighting.
+To overcome this challenge, we leverage the MaterialGAN prior: instead of directly optimizing for the parameter maps~$\params$,  we can optimize for a vector $\latent$ in the MaterialGAN \emph{latent space} and map (decode) this latent vector back into material maps $\params$.
+The optimization problem then becomes:
+%
+\begin{equation}
+	\label{eq:opt_gan}
+	\latentopt = \textstyle\argmin_{\latent} \sum_{i=1}^k \loss(\render(\generator(\latent); \,\light_i, \camera_i), \img_i),
+\end{equation}
+%
+where $\generator$ is the learned MaterialGAN generator.
+Given that both $\generator$ and $\render$ are differentiable operations, Eq.~\eqref{eq:opt_gan} can be optimized via gradient-based methods to estimate $\latentopt$ and the corresponding SVBRDF maps $\generator(\latentopt)$.
+%
+The above operation is similar to recent work on embedding images in the StyleGAN latent space \cite{Abdal19a,Abdal19b}.
+The key difference is that we do not match material parameters directly, but evaluate their error through the rendering operator $\render(\cdot)$.
+To our knowledge, ours is the first approach to use a GAN latent space in combination with a rendering operator.
+%
+\paragraph{Loss function.}
+We optimize Eq.~\ref{eq:opt_gan} using a combination of a standard per-pixel L2 loss and a ``perceptual loss'' \cite{Johnson2016} that has been shown to produce sharper results in image synthesis tasks:
+%
+\begin{equation}
+	\label{eq:loss}
+	\loss(\img, \img') = \lambda_1 \lossPix + \lambda_2 \lossPercp,
+\end{equation}
+%
+The perceptual loss is defined as:
+%
+\begin{equation}
+	\lossPercp(\img, \img') = \textstyle\sum_{j=1}^4 w^\mathrm{percept}_j \left\|F_j(\img) - F_j(\img')\right\|_2^2,
+\end{equation}
+%
+where $F_1, \cdots, F_4$ are the flattened feature maps corresponding to the outputs of VGG-19 layers  \texttt{conv1\_1}, \texttt{conv1\_2}, \texttt{conv3\_2}, and \texttt{conv4\_2} from a pre-trained VGG network \cite{VGG}. See section \ref{ssec:optim} for more details.
+%
+\paragraph{Optimization details.}
+We convert the TensorFlow-trained MaterialGAN model to PyTorch, in which our optimization framework is implemented. We optimize Eq.~\ref{eq:opt_gan} using the Adam optimizer in PyTorch, with a learning rate of $0.01$. We set all other hyper-parameters to default values.
+%
+Now that our basic optimization framework is set up, there remain two key ingredients to implement our GAN-based optimization framework (Eq.~\eqref{eq:opt_gan}): (i)~the choice of \emph{latent space} that we optimize $\latent$ over, and (ii)~our optimization strategy to minimize the objective function. In the following sections, we describe our approach, along with an empirical analysis of these design choices.
+%
+\input{tex/fig/fig_embed}
+%
+\subsection{Latent space}
+\label{ssec:latent}
+%
+As discussed in Sec. \ref{ssec:latent_space}, StyleGAN2 (and consequently, MaterialGAN) has a number of potential latent spaces.
+In particular, MaterialGAN uses three different \emph{style} latent spaces: the input latent code $\bz \in \calZ$ , the intermediate latent code $\bw \in \calW$ and per-layer styles $\bw^+ \in \calW^+$.
+StyleGAN2 also injects noise $\noise \in \calN$ into every layer of the network to generate stochastic variations.
+%
+The typical forward generation process of the GAN only uses $\bz$, with $\bw$ being generated from $\bz$ via a mapping network, and $\bw^+$ being generated from $\bw$ via affine transformations.
+However, Abdal~et~al.~\shortcite{Abdal19a} note that the space of $\calZ$ is too restrictive for accurate embedding of faces or other content into the GAN space.
+In other words, given the image of a human face, it is generally impossible to find a single $\bz \in \calZ$ such that the generated image closely matches the target.
+This remains the case even when extending the space to $\calW$, i.e., when searching for a $\bw$ instead of a $\bz$.
+The space $\calW^+$, on the other hand, offers much stronger representative power.
+%
+Our experiments on embedding material maps into MaterialGAN demonstrate that optimizing for $\calW^+$ is also needed for MaterialGAN to accurately reproduce input maps.
+We demonstrate this in Figure \ref{fig:embed}, via an experiment where we embed a given material (with known material maps) into MaterialGAN.
+As shown in rows (2) and (3), maps generated by optimizing $\bw^+ \in \calW^+$ contain more detail compared to those using $\bw \in \calW$.
+%
+\input{tex/fig/fig_strategy}
+%
+On the other hand, some small-scale details are still missing.
+In fact, according to our experiments, only colors and large-scale features can be captured by the $\calW^+$ space.
+For depicting high-frequency patterns, as demonstrated in rows (4) and (5) of Figure \ref{fig:embed}, we need to go even further and optimize the noise vector $\noise$ (instead of drawing it from multi-variate normal distributions).
+We note that optimizing for the noise component is even more important in MaterialGAN, compared to embedding faces in StyleGAN or StyleGAN2.
+We suspect that this is because with human faces, the distinction between large-scale features (e.g., eyes, noise, and mouth) and small-scale features (e.g., winkles) is very prominent, allowing the $\calW^+$ space to focus mostly on the large-scale features while leaving the small-scale ones to the noise vector $\noise \in \calN$.
+%
+In our case, the boundary between large-scale and small-scale material features is much less distinct.
+The physical scales of real-world materials varies in a continuous fashion, making it virtually impossible to assign them to only one of the $\calW^+$ and $\calN$ spaces.
+We hypothesize that for this reason, we need to focus on both $\calW^+$ and $\calN$ to achieve high-quality reconstruction of SVBRDF maps.
+%
+Based on these empirical observations, estimating SVBRDF parameter maps from photographs using our pre-trained MaterialGAN boils down to solving the following optimization:
+%
+\begin{equation}
+	\latentopt = \argmin_{\bw^+ \in \calW^+,\, \noise \in \calN} \sum_{i=1}^k \loss(\render(\generator(\bw^+, \noise); \,\light_i, \camera_i), \img_i).
+\end{equation}
+%
+Since there are two variables $\bw^+$ and $\noise$ that behave in a correlated fashion, a proper optimization strategy is crucial to achieve high-quality results. We now discuss our alternating two-step optimization method.
+%
+\subsection{Optimization strategy}
+\label{ssec:optim}
+%
+Abdal~et~al.~\shortcite{Abdal19a,Abdal19b} recommended using a two-stage setting by first optimizing $\bw^+$ (with $\noise$ fixed) and then $\noise$ (with $\bw^+$ fixed).
+In our case, this approach does work in some cases but is not always the top-performing option.
+In addition to this strategy, we propose two alternatives, leading to three different optimization schemes:
+%
+\begin{enumerate}
+	\item \textbf{Strategy 1}: Optimize $\bw^+$ first, then optimize $\noise$;
+	\item \textbf{Strategy 2}: Jointly optimize both $\bw^+$ and $\noise$;
+	\item \textbf{Strategy 3}: Alternatively optimize $\bw^+$ and $\noise$ for a small number (for example, 10) of iterations each.
+\end{enumerate}
+%
+Figure~\ref{fig:optimize} shows a comparison of these strategies.
+All of them give reasonable results, but Strategy 1 is better suited for materials with strong large-scale features.
+Strategy 2 provides the fastest convergence because it allows the noise vector $\noise$ to be modified from the very beginning.
+This, however, generally causes the optimization to use $\noise$ for encoding higher-level features and is prone to overfitting.
+Finally, Strategy 3---a hybrid of Strategies 1 and 2---behaves in a more robust fashion than either of the previous strategies in most cases.
+We use Strategy 3 for all the results in our paper.
+Additionally, our experiments indicate that it is desirable to use different VGG layer weights for the optimization of $\bw^+$ and $\noise$. The weights we are using are, for $\bw^+$: [1/512,1/512,1/128,1/64]; for $\noise$: [1/64,1/64,1/256,1/512].
+%
+\input{tex/fig/fig_noise_vs_refine}
+%
+\paragraph{Noise optimization vs. post-refinement.}
+\label{ssec:post-refine}
+%
+Instead of optimizing latent space $\bw^+$ with noise $\noise$, another option is to apply post-refinement (that is, pixel-space optimization without any latent space) after optimizing $\bw^+$ only. However, the space $\bw^+$ is too small to realistically match per-pixel detail: if optimizing $\bw^+$ only, the resulting maps have significant artifacts. Adding post-refinement to such a result essentially becomes per-pixel optimization (with little regularization), which tends to to work poorly with a small number of inputs. Optimizing $\noise$ offers more powerful regularization, as the noise is inserted into all layers of the generator, rather than just appended at the end (like post-refinement). We show two failure examples in Figure \ref{fig:noiseVSrefine}, where optimizing $\bw^+$ leads to unsatisfactory texture maps.
+%
+\input{tex/fig/fig_init}
+%
+\subsection{Initialization}
+\label{ssec:init}
+%
+We find that our method is robust to the initialization of the latent vectors. We experimented with using the same initial configuration---represented by the material produced by the mean $\bw$ of our GAN training data (see Figure \ref{fig:init}(a))---and found that is works well for most of the materials we tried (both synthetic and real).
+However, this initialization represents a material with a high roughness (reflecting a bias in our training data) and sometimes leads to errors when fitting highly specular / low roughness materials.
+Therefore, we add an additional low roughness initialization (see Figure \ref{fig:init}(b)).
+In practice, given the captured images, we run our MaterialGAN optimization starting from both initializations and retain the result with the lowest optimization error of Eq.~\eqref{eq:loss}.
+All of our results in this paper followed this scheme.
+%

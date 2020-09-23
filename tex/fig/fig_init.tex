@@ -1,0 +1,15 @@
+\begin{figure}[t]
+	\addtolength{\tabcolsep}{-4pt}
+	\begin{tabular}{ll@{\hspace{8\tabcolsep}}ll}
+		\includegraphics[width=0.23\columnwidth]{images/validation/init/latent_avg_256_2x2.jpg} &
+		\includegraphics[width=0.23\columnwidth]{images/validation/init/latent_avg_256_render.jpg} &
+		\includegraphics[width=0.23\columnwidth]{images/validation/init/latent_const_256_2x2.jpg} &
+		\includegraphics[width=0.23\columnwidth]{images/validation/init/latent_const_256_render.jpg}
+		\\
+		\multicolumn{2}{c}{\small (a) Mean $\bw$ initialization} & 
+		\multicolumn{2}{c}{\small (b) Low roughness initialization} \\
+	\end{tabular}
+	\caption{\label{fig:init}
+		\textbf{Visualization of our constant initializations.} We initialize our optimization with the two materials shown here and pick the result with the lowest final loss. (This applies in cases where we do not use the result from Deschaintre et al. as initialization, as detailed in the results section and supplementary materials.) Left: Material maps generated from the mean latent vector $\bw$. Right: An additional low roughness, specular initialization.
+	}
+\end{figure}

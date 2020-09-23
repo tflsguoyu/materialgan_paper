@@ -1,0 +1,22 @@
+\section{Conclusion and Future Work}
+\label{sec:conclusion}
+%
+\paragraph{Discussion and limitations.}
+While we believe our framework improves upon the state of the art, there are also some limitations. Our current BRDF model is shared by previous work, but certain common effects (layering on book covers, subsurface fiber scattering in woods, anisotropy in fabrics) are not correctly captured by it. An extension of our generative model and rendering operator would be possible, though the key challenge is finding high-quality  training data for these effects.
+
+Our assumption of almost flat samples will fail for materials with strong relief patterns, and will produce blurring or ghosting if there are obvious parallax effects in the aligned captured images. Strong self-shadowing or inter-reflections are also not currently handled. Solving for height instead of normal, with a more advanced rendering operator, may be able to resolve parallax effects \revision{and to} correctly predict (and undo) shadowing effects from strong height variations.
+
+Furthermore, more precise calibration may improve our accuracycd. This would likely require knowledge of the cell phone hardware, and/or pre-calibration of its properties (e.g. flash light falloff, lens vignetting, and color processing properties).
+
+%\revision{The resolution of our result can be increased with a coarse-to-fine post-process, since we have a fairly good result as the initialization of next level of resolution.}
+
+\paragraph{Conclusion.}
+We propose a novel method for acquiring SVBRDFs from a small number of input images, typically 3 to 7, captured using a hand-held mobile phone.
+We use an optimization framework that leverages a powerful material prior, based on a generative network, MaterialGAN, trained to synthesize plausible SVBRDFs.
+MaterialGAN learns correlations in SVBRDF parameters and provides local and global regularization to our optimization.
+This produces high-quality SVBRDFs that accurately reconstruct the input images, and because of our MaterialGAN prior, lie on a plausible material manifold.
+As a result, our reconstructions generalize better to novel views and lighting than previous state-of-the-art methods.
+
+We believe that our work is only a first step toward GAN-based material analysis and synthesis and our experiments suggest many avenues for further exploration including improving material latent spaces and optimization techniques using novel architectures and losses, learning disentangled and editable latent spaces, and expanding beyond our current isotropic BRDF model.
+
+

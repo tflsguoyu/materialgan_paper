@@ -1,0 +1,6 @@
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=1.0\columnwidth]{others/system.pdf}
+	\caption{Our inverse rendering pipeline. We optimize for latent vectors $\bw^+$ and $\noise$, that feed into the layers of the StyleGAN2-based MaterialGAN model. The MaterialGAN generator produces material maps (diffuse albedo, normal, roughness and specular albedo), that are rendered under the captured view/light settings. Finally, the renderings and measurements are compared using a combination of L2 and perceptual losses.}
+	\label{fig:system}
+\end{figure}

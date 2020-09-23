@@ -1,0 +1,37 @@
+\section{MaterialGAN: A Generative SVBRDF Model}
+\label{sec:gan}
+%
+Generative Adversarial Networks \cite{Goodfellow2014} are trained to map an input from a latent space (often randomly sampled from a multi-variate normal distribution) to a plausible instance of the target distribution.
+In recent years, GANs have made remarkable progress in synthesizing high-resolution, photo-realistic images. Inspired by this progress, we propose MaterialGAN, a GAN that is trained to generate plausible materials, thus implicitly learning an SVBRDF manifold. MaterialGAN is based on the architecture of StyleGAN2 \cite{StyleGAN2}.
+%
+\subsection{Overview of StyleGAN and its latent spaces}
+\label{ssec:latent_space}
+%
+StyleGAN2 \cite{StyleGAN2} is an improvement of StyleGAN \cite{StyleGAN} and is the state-of-the-art generative adversarial network (GAN) for image synthesis, especially for human faces.
+The architecture has several advantages over previous models like ProgressiveGAN~\cite{Karras2018} and DCGAN~\cite{DCGAN}. For our purposes, the main advantage is that the model is not simply a black-box stack of convolution and upsampling layers, but has additional, more specific structure, allowing for much easier inversion (latent space optimization).
+%
+The StyleGAN2 architecture starts with a learned constant $4 \times 4 \times 512$ tensor and progressively upsamples it to the final output target resolution via a sequence of convolutional and upsampling layers (7 in total to end with a final image resolution of $256 \times 256$).
+Given an input latent code vector $\bz \in \calZ \subset \Real^{512}$, StyleGAN2 transforms it through a non-linear mapping network of fully-connected layers into an intermediate latent vector $\bw \in \calW \subset \Real^{512}$.
+The rationale for the introduction of the space of~$\calW$ is that while $\calZ$ requires (almost) every latent $\bz \in \calZ$ to correspond to a realistic output, vectors $\bw \in \calW$ are free from this overly stringent constraint, which leads to a less ``entangled'' mapping, with more meaningful dimensions (see \cite{StyleGAN,StyleGAN2} for more discussion).
+%
+In the original StyleGAN, the vector $\bw \in \calW$ is mapped via a learned affine transformation to mean and variance ``style'' vectors that control adaptive instance normalizations (AdaIN) \cite{Huang2017} that are applied before and after every convolution in the generation process (thus $7 \times 2 = 14$ times for a model of resolution $256 \times 256$). The statistics of the AdaIN normalizations caused the feature maps and output images of StyleGAN to suffer from droplet artifacts. StyleGAN2 removes the droplet artifacts entirely by replacing the AdaIn normalization layers with a demodulation operation which bakes the entire style block into a single layer while maintaining the same scale-specific control as StyleGAN.
+We construct a matrix $\bw^+ \in \calW^+ \subset \Real^{512 \times 14}$ by replicating $\bw$ 14 times.
+During training and standard synthesis, the columns of $\bw^+$ are identical, and correspond to $\bw$.
+However, as we will discuss later (and similar to Abdal et al. \shortcite{Abdal19a}), we relax this constraint when optimizing for an embedding; $\calW^+$ thus becomes an extended latent space, more powerful than $\calW$ or $\calZ$.
+%
+Additionally, StyleGAN2 injects Gaussian noise, $\noise$, into each of the 14 layers of the generator.
+This noise gives StyleGAN2 the ability to synthesize stochastic details at multiple resolutions.
+Abdal et al. \shortcite{Abdal19b} make the observation that one can also treat these noise inputs $\noise$ as a latent space $\calN$. Thus, combining these two spaces defines yet another latent space $\calWN$.
+%
+\input{tex/fig/fig_matgan}
+%
+\subsection{MaterialGAN training}
+\label{ssec:training}
+%
+MaterialGAN was trained with the dataset provided by Deschaintre et al.~\shortcite{Deschaintre2018} (and also used in Gao et al.~\shortcite{Gao2019}). They generated this dataset by sampling the parameters of procedural material graphs from Allegorithmic Substance Share to create an initial set of 155 high-quality SVBRDFs at resolution $4096 \times 4096$. The dataset was augmented by blending multiple SVBRDFs and generating $256 \times 256$ resolution crops at random positions, scales and rotations. The final dataset consists of around 200,000 SVBRDFs. For detailed information about the curation of dataset we refer the reader to \cite{Deschaintre2018}. Since pairs of SVBRDFs in the dataset were the same with only a slight variation, we selected 100,000 SVBRDFs.
+%
+The maps for each SVBRDF are stacked in 9 channels (3 for albedo, 2 for normals, 1 for roughness, and 3 for specular albedo). We account for this by adapting the MaterialGAN architecture to output 9-channel outputs. MaterialGAN is trained in TensorFlow (version 1.15) with the same loss functions and similar hyper-parameters from StyleGAN2 \cite{StyleGAN2}. StyleGAN2 configuration F was used for all experiments. The generator and discriminator were trained using Adam optimizers. The learning rate was increased per resolution from 0.001 to 0.0025 for both the generator and the discriminator. The discriminator was shown 25 million images. Training on 8$\times$ Nvidia Tesla V100 takes about 5 days.
+%
+Figure~\ref{fig:material_gan_samples} shows materials generated by randomly sampling the MaterialGAN latent space and images rendered from them. As can be seen here, MaterialGAN generates a wide variety of nearly photorealistic materials ranging from structured to stochastic, diffuse to specular, and with large-scale variations to fine detail. Furthermore, Figure~\ref{fig:fakemorph} \revision{and the accompanying video show} example interpolations between pairs of generated materials in the latent space, producing plausible non-linear morphing results.
+%
+\input{tex/fig/fig_morph_fake}

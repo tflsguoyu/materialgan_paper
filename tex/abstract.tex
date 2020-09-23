@@ -1,0 +1,10 @@
+\begin{abstract}
+    We address the problem of reconstructing spatially-varying BRDFs from a small set of image measurements.
+    This is a fundamentally under-constrained problem, and previous work has relied on using various regularization priors or on capturing many images to produce plausible results.
+    In this work, we present \emph{MaterialGAN}, a deep generative convolutional network based on StyleGAN2, trained to synthesize realistic SVBRDF parameter maps.
+    We show that MaterialGAN can be used as a powerful material prior in an inverse rendering framework: we optimize in its latent representation to generate material maps that match the appearance of the captured images when rendered.
+    We demonstrate this framework on the task of reconstructing SVBRDFs from images captured under flash illumination using a hand-held mobile phone. Our method succeeds in producing plausible material maps that accurately reproduce the target images, and outperforms previous state-of-the-art material capture methods in evaluations on both synthetic and real data.
+    Furthermore, our GAN-based latent space allows for high-level semantic material editing operations such as generating material variations and material morphing.
+
+    %SVBRDF capture from photographs remains a challenging and actively researched task. Classic methods used heavy equipment and/or many light and view direction samples, while recent work has significantly decreased these requirements through the use of neural techniques. In this paper, we make further progress in designing a general framework for SVBRDF capture. Our key improvement is optimization in the latent space of a generative adversarial network (specifically StyleGAN) trained to generate plausible SVBRDF maps. For multi-image capture with co-located camera and light source, we demonstrate results that succeed in the combined goals of matching the target images and producing plausible material maps. Furthermore, our GAN-based latent space offers the additional ability to edit the latent vector to achieve semantically meaningful operations such as morphing.
+\end{abstract}

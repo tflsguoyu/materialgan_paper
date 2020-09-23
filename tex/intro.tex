@@ -1,0 +1,74 @@
+\section{Introduction}
+\label{sec:intro}
+%
+Despite a few decades of effort in computer graphics and vision, capturing spatially-varying reflectance of real-world materials remains a challenging and actively researched task.
+Measurement methods have traditionally used custom hardware systems to densely sample illumination and viewing directions \cite{Marschner1999,Matusik2003}, followed by post-processing such as fitting parametric BRDF models \cite{Ngan2005}. However, such approaches are restricted to laboratory conditions.
+
+Recent work has explored methods for casual capture of spatially-varying BRDFs (SVBRDFs) using commodity hardware and in less constrained environments \cite{Francken2009,Ren2011,Aittala2013,Aittala2015,Hui2017}.
+These methods usually follow an \emph{inverse-rendering} approach: they define a forward rendering model and optimize reflectance parameters so that the simulated appearance matches physical measurements under certain image metrics.
+With a small number of measured images, this approach is fundamentally under-constrained: there usually exist many material estimates capable of producing renderings that match the measurements, but
+ many of these estimates can be unrealistic and may not generalize to novel illumination and viewing conditions.
+The solution to this problem has been to \emph{regularize} the optimization using pre-determined \emph{material priors} such as linear low-dimensional BRDF models \cite{Ren2011,Hui2017} or stationary stochastic textures \cite{Aittala2015,Aittala2016}.
+However, such hand-crafted priors do not generalize to a wide range of real-world materials.
+
+More recently, learning-based approaches have demonstrated remarkable results for reconstructing SVBRDFs from one \cite{Deschaintre2018,Li2018} or more images \cite{Deschaintre2019}.
+While these methods use rendering-based losses (similar to the inverse rendering approaches) during training, at test time they predict SVBRDFs from images using a single feed-forward pass through a deep network.
+As a result, the reconstructed material parameters may not accurately reproduce the measured appearance.
+In contrast, Gao et al. \shortcite{Gao2019} propose using an optimization-based approach in conjunction with a learned material prior.
+Specifically, they train a fully-convolutional auto-encoder on a large material dataset and optimize in the latent space of this auto-encoder. This ensures that the reconstructed SVBRDF parameters both reproduce the measurements and are plausible real-world materials.
+However, while this learned material prior is a significant improvement over hand-crafted priors, it still produces a relatively localized and highly flexible latent space that requires a good initialization (for example, from single image methods \cite{Deschaintre2018,Li2018}) and even then can fail to produce good results.
+
+In this paper, we propose a different material prior that builds on the remarkable progress in image synthesis using deep Generative Adversarial Networks (GANs) \cite{Goodfellow2014,Karras2018,StyleGAN}.
+We train \emph{MaterialGAN}---a StyleGAN2-based deep convolutional neural network \cite{StyleGAN2}---to generate plausible materials from a large-scale, spatially-varying material dataset \cite{Deschaintre2018}.
+MaterialGAN learns \emph{global} correlations in material parameters, both spatially (thus encoding texture patterns) as well as across parameters (for example, relationships between diffuse and specular parameters).
+As illustrated in Figure~\ref{fig:material_gan_samples}, sampling from the MaterialGAN latent space produces plausible, realistic materials with complex variations and diverse appearance.
+
+While GANs have traditionally been used to synthesize images, we demonstrate a very different application, using MaterialGAN as a powerful prior in an inverse rendering-based material capture framework.
+We append a rendering layer to MaterialGAN, setting up a differentiable pipeline from the learned latent space, through generating material maps, to rendering images under specified views and lighting.
+This allows us to optimize the MaterialGAN latent vector(s) to minimize the error between the rendered and measured images and reconstruct the corresponding material maps.
+Doing so ensures that the reconstructed SVBRDFs lie on the ``manifold of realistic materials'', while at the same time accurately reproducing the captured images.
+
+%Additionally, we augment a standard per-pixel loss with a multi-resolution loss and a perceptual feature loss \cite{Johnson2016} based on a pre-trained VGG network \cite{VGG}.
+
+We demonstrate that our GAN-based optimization framework produces high-quality SVBRDF reconstructions from a small number (3-7) images captured under flash illumination using hand-held mobile phones, and improves upon previous state-of-the-art methods \cite{Gao2019,Deschaintre2019}.
+In particular, it produces cleaner, more realistic material maps that better reproduce the appearance of the captured material under both input \emph{and novel} lighting.
+Moreover, as illustrated in Figure~\ref{fig:real}, MaterialGAN adapts to a wide range of SVBRDF samples ranging from diffuse to specular materials and near-stochastic textures to structured patterns with multiple distinct, complex materials.
+%Finally, since our material prior does not make assumptions on the acquisition process, we can handle any arbitrary capture setup (for example different view or lighting conditions) without requiring any re-training. \KS{probably drop this since we are not actually showing this and this applies to Gao also.}
+
+Furthermore, our GAN-based latent space offers the ability to edit the latent vector in semantically meaningful ways (via operations like interpolation in the latent space) and generate realistic materials that go beyond the captured images.
+This is not possible with current material capture methods that do not afford any control over their per-pixel BRDF estimates.
+
+
+
+
+%We optimize for an embedding of the unknown SVBRDF in several of the intermediate latent spaces of StyleGAN \cite{Abdal19a,Abdal19b}. Using a generative model to define the latent space may seem unnatural at first, as our goal is the capture of real data, not the generation of fake data. However, it turns out that a model trained to generate plausible SVBRDF map data can serve as a powerful implicit prior, keeping the optimization on the manifold of realistic results. Another important improvement is achieved by augmenting standard per-pixel image comparison with a multi-resolution comparison and with loss functions based on the feature maps of the VGG network \cite{VGG}. \milos{List of contributions?}
+
+%For multi-image capture with co-located camera and light source (achieved in practice by multiple mobile phone flash photographs), we demonstrate results that succeed in the combined goals of matching the target images and producing plausible material maps, improving upon previous techniques \cite{Gao2019,Deschaintre2019}. Furthermore, our GAN-based latent space offers the additional ability to edit the latent vector to achieve semantically meaningful operations such as morphing.
+
+
+
+%In this paper, we further explore the design of such a general framework for SVBRDF acquisition.
+%Instead of end-to-end learning, we focus on an optimization-based \emph{analysis-by-synthesis} (also known as \emph{inverse-rendering}) approach that involves (i)~defining a forward appearance model; and (ii)~optimizing model parameters so that simulated appearances match physical measurements (under certain image metrics).
+%In fact, analysis by synthesis is the foundation of many imaging techniques, and there has been a long history of previous methods taking this path \cite{Gardner2003,Aittala2013,Aittala2016,Gao2019}.
+
+%Unfortunately, in the context of SVBRDF acquisition, no previous methods have been able to offer a sufficiently powerful prior on the manifold of realistic material maps, resorting instead to requiring many more measurements with very specific illumination patterns \cite{Gardner2003,Francken2009,Aittala2013}, restrictive assumptions on stationarity of textures \cite{Aittala2016} or initialization with a different method \cite{Gao2019}.
+
+%More recently, a family of deep-learning-based methods have been introduced and are capable of significantly reducing the number of input images required, sometimes down to as low as one.
+%These methods leverage neural networks to define loss functions, latent spaces, or to learn parameter inference pipelines end-to-end.
+
+%Prior works have shown that a single image generally carries insufficient information for accurately recovering SVBRDFs, regardless of the algorithm used.
+%On the other hand, a few recent works~\cite{Gao2019,Deschaintre2019} have demonstrated the possibility for further progress (that offers a good balance between acquisition cost and reconstruction quality) by instead capturing a small number of images followed by a robust reconstruction leveraging neural priors.
+%However, within this space, there are still a large number of design options, such as acquisition configurations (e.g., illumination patterns) and reconstruction techniques, that remain to be explored.
+
+%A main challenge for solving analysis-by-synthesis optimizations is the under-constrained nature of these problems.
+%With a small number of measured images, there usually exist many material model parameters capable of producing renderings that match the measurements.
+%Most of these solutions, unfortunately, have unrealistic parameter textures and cannot generalize to novel illumination and viewing conditions.
+%To address this problem, the general solution is to \emph{regularize} the optimization using pre-determined \emph{priors}.
+%Unfortunately, in the context of SVBRDF acquisition, no previous methods have been able to offer a sufficiently powerful prior on the manifold of realistic material maps, resorting instead to requiring many more measurements with very specific illumination patterns \cite{Gardner2003,Francken2009,Aittala2013}, restrictive assumptions on stationarity of textures \cite{Aittala2016} or initialization with a different method \cite{Gao2019}.
+
+%In this paper, we take a step forward by solving the analysis-by-synthesis optimization in the latent space of a generative model, specifically StyleGAN \cite{StyleGAN}, trained to generate plausible SVBRDF maps.
+%We optimize for an embedding of the unknown SVBRDF in several of the intermediate latent spaces of StyleGAN \cite{Abdal19a,Abdal19b}. Using a generative model to define the latent space may seem unnatural at first, as our goal is the capture of real data, not the generation of fake data. However, it turns out that a model trained to generate plausible SVBRDF map data can serve as a powerful implicit prior, keeping the optimization on the manifold of realistic results. Another important improvement is achieved by augmenting standard per-pixel image comparison with a multi-resolution comparison and with loss functions based on the feature maps of the VGG network \cite{VGG}. \milos{List of contributions?}
+
+%For multi-image capture with co-located camera and light source (achieved in practice by multiple mobile phone flash photographs), we demonstrate results that succeed in the combined goals of matching the target images and producing plausible material maps, improving upon previous techniques \cite{Gao2019,Deschaintre2019}. Furthermore, our GAN-based latent space offers the additional ability to edit the latent vector to achieve semantically meaningful operations such as morphing.
+
+% On synthetic data, we also show that our latent space optimization applies to other illumination configurations, such as pattern projection with an LCD screen. \gy{TODO:}
