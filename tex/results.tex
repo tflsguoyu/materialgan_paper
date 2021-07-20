@@ -14,14 +14,14 @@ Unless otherwise specified, all our results use seven images for inverse-renderi
 \paragraph{Inverse-rendering performance.}
 Our optimization takes about 2 minutes to complete 2000 iterations on a Titan RTX GPU. In many cases, the results converge after ~500 iterations, but we use 2000 everywhere for simplicity.
 %
-\input{tex/fig/fig_synthetic}
+\input{tex/fig/synthetic}
 %
 \paragraph{Testing on synthetic data.}
 Figure \ref{fig:synthetic} contains two synthetic results using our method, showing a close match both in maps and in novel view renderings. For more results, please refer to supplemental materials. \revision{We} note that all methods perform \revision{better} on synthetic data \revision{than on} real data, possibly because of the exact BRDF model match and \revision{perfect} calibration, and also
 because the synthetic test set, while distinct from the training set, is relatively similar in style.
 %
-\input{tex/fig/fig_main}
-\input{tex/fig/fig_rmse}
+\input{tex/fig/main}
+\input{tex/fig/rmse}
 %
 \subsection{Comparison with prior work on real data}
 \label{ssec:real}
@@ -32,32 +32,32 @@ We show 10 real examples from our cell phone capture pipeline in Figure \ref{fig
 %
 Furthermore, note that we are initializing Gao's method with the 2019 multi-input method by Deschaintre, which is a better initialization than the 2018 single-input method. Thus the baseline we are comparing against is, strictly speaking, even higher than what is published in Gao et al., and combines the two best methods published at this time.
 %
-Generally, we find that our method produces cleaner maps and is less prone to overfitting (burn-in) than Gao's, while producing more accurate re-renderings under original and novel lighting. Table~\ref{tab:main} shows a quantitative evaluation of the re-rendering quality on novel lighting. As these novel views would be hard to match pixel-wise using any method, as they have never been observed, we use a perceptual method, specifically the Learned Perceptual Image Patch Similarity (LPIPS) metric \cite{LPIPS} (lower is better). Note that our method (without initialization by Deschaintre's method) produces better scores for novel views than Gao's method (with initialization) for most images; even in the case where our LPIPS score is worse, our maps still look more plausible overall.
+Generally, we find that our method produces cleaner maps and is less prone to overfitting (burn-in) than Gao's, while producing more accurate re-renderings under original and novel lighting. Table~\ref{tab:accuracy} shows a quantitative evaluation of the re-rendering quality on novel lighting. As these novel views would be hard to match pixel-wise using any method, as they have never been observed, we use a perceptual method, specifically the Learned Perceptual Image Patch Similarity (LPIPS) metric \cite{LPIPS} (lower is better). Note that our method (without initialization by Deschaintre's method) produces better scores for novel views than Gao's method (with initialization) for most images; even in the case where our LPIPS score is worse, our maps still look more plausible overall.
 %
 We also report quantitative evaluations (histograms) for our entire set of results (see Figure \ref{fig:rmse}). For synthetic data, we compare the RMSE of all predicted maps (diffuse albedo, normal, roughness, specular albedo), as we do know the ground truth for them. For both synthetic and real data, we compare the LPIPS scores on novel lighting. We use a + sign to indicate initialization by Deschaintre et al. In the top row, we compare both methods without initialization by Deschaintre's method, while in the middle row, both methods are initialized, and in the bottom row, we compare our method without initialization to Gao's with initialization. Generally, we find that if both methods are initialized the same way, our method outperforms Gao's. Even in the last row, our performance is comparable on synthetic data (worse on normal map and better on diffuse/specular maps) and still better on real data overall.
 %
-\input{tex/fig/tab_main}
+\input{tex/tab/accuracy}
 %
 \paragraph{Note about Deschaintre et al.} We find that the results from \cite{Deschaintre2019} have much less accurate re-rendering than either ours or Gao's method, as they are not doing any optimization to precisely fit the target images. The mismatches we observe are definitely not due to simple scaling or gamma correction issues, as that would be consistent across examples; rather, we find that the method performs much better on synthetic examples that match the visual style of its training set. On the other hand, their method is fast and results tend to be clean and artifact-free, so they are very suitable for initialization of optimization methods.
 %
 \subsection{Additional comparisons}
 %
-\input{tex/fig/fig_diff_init}
+\input{tex/fig/diff_init}
 %
 \paragraph{Optimization with different initializations.}
 In Figure \ref{fig:result_init}, we compare our method to Gao's with and without initialization by Deschaintre's method in all 4 combinations, on a synthetic and a real example. This shows that Gao's method more significantly dependent on good initialization that ours (even though our method can still occasionally benefit).
 %
-\input{tex/fig/fig_refine}
+\input{tex/fig/refine}
 %
 \paragraph{Post-refinement.}
 In general, the quality of our maps is sufficient after using our MaterialGAN-based optimization. However, Gao's method introduced a post-refinement step, where the maps are further optimized without any latent space, and with at most minor regularization. Therefore, we also implement a similar post-refinement step. However, like good initialization, this post-refinement makes less of a difference in our method, and Gao's method is more dependent on it, as it produces significantly blurry maps without it. This is shown in Figure \ref{fig:refine}; note the difference in sharpness of the maps.
 %
-\input{tex/fig/fig_multi_fake}
-\input{tex/fig/fig_multi_real}
+\input{tex/fig/multi_fake}
+\input{tex/fig/multi_real}
 %
 \paragraph{Optimization with different numbers of input images.} While most of our results are shown with 7 inputs, using two additional inputs for novel lighting evaluation, our method does work with various numbers of input images. We show 3 synthetic examples in Figure~\ref{fig:results_multi_inputs2}, with different numbers of inputs from 1 to 25. All the three examples are the same as used in Gao's work. The errors of both reconstructed SVBRDF maps and novel-view renderings generally decrease with more input images, as is expected for an inverse-rendering method. In Figure~\ref{fig:results_multi_inputs}, we compare real capture results with 1, 3, and 7 inputs, with and without initialization by Deschaintre's method, and also include Gao's results for 3 and 7 inputs (with initialization). Our result remains plausible with 3 inputs, though artifacts do get reduced with more inputs. For all numbers of inputs, our result (with or without initialization) tends to be cleaner than Gao's.
 %
 \paragraph{Editing operations.} An additional advantage of the StyleGAN-based latent space is the ability to achieve semantically meaningful operations such as morphing, by interpolating two or more parent latent codes to create a hybrid offspring material. Morphing in latent space often preserves semantic features qualitatively better than naive interpolation in pixel space. Figure~\ref{fig:interp}~\revision{and the supplemental video show} morphing of a few real materials using linear interpolation in latent space, compared to the corresponding naive interpolation (linear in pixel space).
 %
-\input{tex/fig/fig_morph_real}
+\input{tex/fig/morph_real}
 %
