@@ -1,0 +1,98 @@
+\let\mypdfximage\pdfximage
+\def\pdfximage{\immediate\mypdfximage}
+
+\documentclass[acmtog,screen]{acmart}
+%\hypersetup{draft}
+\acmSubmissionID{166}
+
+% Metadata Information
+\acmJournal{TOG}
+\acmVolume{39}
+\acmNumber{6}
+\acmArticle{254}
+\acmYear{2020}
+\acmMonth{12}
+
+% Copyright
+%\setcopyright{none}
+%\setcopyright{acmcopyright}
+%\setcopyright{acmlicensed}
+\setcopyright{rightsretained}
+%\setcopyright{usgov}
+%\setcopyright{usgovmixed}
+%\setcopyright{cagov}
+%\setcopyright{cagovmixed}
+
+% DOI
+\acmDOI{10.1145/3414685.3417779}
+
+\input{tex/macros}
+
+% Title portion
+\title{MaterialGAN: Reflectance Capture using a Generative SVBRDF Model}
+
+% Authors
+\author{Yu Guo}
+\affiliation{\institution{University of California, Irvine}}
+\author{Cameron Smith}
+\affiliation{\institution{Adobe Research}}
+\author{Milo\v{s} Ha\v{s}an}
+\affiliation{\institution{Adobe Research}}
+\author{Kalyan Sunkavalli}
+\affiliation{\institution{Adobe Research}}
+\author{Shuang Zhao}
+\affiliation{\institution{University of California, Irvine}}
+
+% TOG prefers author-name bib system with square brackets
+\citestyle{acmauthoryear}
+%\setcitestyle{nosort,square} % nosort to allow for manual chronological ordering
+
+% % Alter some LaTeX defaults for better treatment of figures:
+% % See p.105 of "TeX Unbound" for suggested values.
+% % See pp. 199-200 of Lamport's "LaTeX" book for details.
+% %  General parameters, for ALL pages:
+% \renewcommand{\topfraction}{0.9}    % max fraction of floats at top
+% \renewcommand{\bottomfraction}{0.8} % max fraction of floats at bottom
+% %   Parameters for TEXT pages (not float pages):
+% \setcounter{topnumber}{2}
+% \setcounter{bottomnumber}{2}
+% \setcounter{totalnumber}{4}     % 2 may work better
+% \setcounter{dbltopnumber}{2}    % for 2-column pages
+% \renewcommand{\dbltopfraction}{0.99}    % fit big float above 2-col. text
+% \renewcommand{\textfraction}{0.01}  % allow minimal text w. figs
+% %   Parameters for FLOAT pages (not text pages):
+% \renewcommand{\floatpagefraction}{0.7}  % require fuller float pages
+% % N.B.: floatpagefraction MUST be less than topfraction !!
+% \renewcommand{\dblfloatpagefraction}{0.7}   % require fuller float pages
+
+% Document starts
+\begin{document}
+    \input{tex/fig/teaser}
+    \input{tex/abstract}
+    %
+    % http://dl.acm.org/ccs.cfm
+	\begin{CCSXML}
+		<ccs2012>
+		  <concept>
+    		<concept_id>10010147.10010371.10010372</concept_id>
+    		<concept_desc>Computing methodologies~Rendering</concept_desc>
+        	<concept_significance>500</concept_significance>
+    	  </concept>
+		</ccs2012>
+	\end{CCSXML}
+	\ccsdesc[500]{Computing methodologies~Rendering}
+	%
+    \keywords{SVBRDF capture, generative adversarial network.}
+    \maketitle
+	%
+    \input{tex/intro}
+    \input{tex/related}
+    \input{tex/gan}
+    \input{tex/framework}
+    \input{tex/results}
+    \input{tex/end}
+    \input{tex/ack}
+	%
+    \bibliographystyle{ACM-Reference-Format}
+    \bibliography{references}
+\end{document}
